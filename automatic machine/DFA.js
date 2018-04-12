@@ -1,8 +1,8 @@
 class FARule {
 	constructor(state, character, next_state) {
-		this._state = state;
-		this._character = character;
-		this._next_state = next_state;
+		this._state = state
+		this._character = character
+		this._next_state = next_state
 	}
 
 	appliesTo(state, character) {
@@ -10,51 +10,61 @@ class FARule {
 	}
 
 	follow() {
-		return this._next_state;
+		return this._next_state
 	}
 
 	toString() {
-		return `#<FARule ${this.state} -- ${this._character}>`;
+		return `#<FARule ${this.state} -- ${this._character}>`
 	}
 }
 
 class DFARulebook {
 	constructor(rules) {
-		this._rules = rules;
+		this._rules = rules
 	}
 
 	next_state(state, character) {
-		return this.rule_for(state, character).follow();
+		let rule = this.rule_for(state, character)
+
+		return rule ? rule.follow() : false
 	}
 
 	rule_for(state, character) {
 
-		return this._rules.find((rule) => {
+		let findNextState = this._rules.find((rule) => {
 			return rule.appliesTo(state, character)
 		})
+
+		return findNextState !==  undefined ? findNextState : false
 	}
 }
 
 class DFA {
 	constructor(current_state, accept_states, rulebook) {
-		this._current_state = current_state;
-		this._accept_states = accept_states;
-		this._rulebook = rulebook;
+		this._current_state = current_state
+		this._accept_states = accept_states
+		this._rulebook = rulebook
 	}
 
 	accepting() {
-		return this._accept_states.indexOf(this._current_state) != -1;
+		return this._accept_states.indexOf(this.current_state) != -1
 	}
 
-	read_character(character) {
-		return this._current_state = this._rulebook.next_state(this._current_state, character)
+	read_character(character, save_current_state) {
+		let next_state = this._rulebook.next_state(this.current_state, character)
+
+		return this.current_state = (next_state === false ? save_current_state : next_state)
 	}
 
 	read_string(string) {
-		string = Array.from(string)
-		return string.forEach((item) => {
-		  this.read_character(item)
+		let save_current_state,read_string = Array.from(string)
+		save_current_state = this._current_state
+
+		read_string.forEach((item) => {
+		  this.read_character(item, save_current_state)
 		})
+
+		this._current_state === false ? save_current_state : this._current_state
 	}
 }
 
@@ -84,11 +94,11 @@ var rulebook = new DFARulebook([
 	new FARule(3, 'a', 3),	new FARule(3, 'b', 3),
 ])
 
-rulebook.next_state(1, 'a')
+//rulebook.next_state(1, 'a')
 
 dfa_design = new DFADesign(1, [3], rulebook)
 
-dfa_design.accepts('a')
+dfa_design.accepts('cc')
 
 
 

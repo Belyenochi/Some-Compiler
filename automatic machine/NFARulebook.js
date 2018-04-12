@@ -24,7 +24,8 @@ class NFARulebook {
   }
 
   next_states(states, character) {
-    return new Set(concatArray(Array.from(states).map( (state) => {return this.follow_rules_for(state, character)})));
+    //[].concat.apply([], array) 将会将array数组里的每一个元素拆开作为参数传给[],这是一种hack式的数组降维
+    return new Set([].concat.apply([], (Array.from(states).map( (state) => {return this.follow_rules_for(state, character)})));
   }
 
   follow_rules_for(state, character) {
@@ -35,13 +36,13 @@ class NFARulebook {
     return this._rules.filter((item) => {return item.appliesTo(state, character)});
   }
 
-  follow_free_moves(states) {
+  follow_epsilon_moves(states) {
   	let more_states = this.next_states(states, 'nil');
 
   	if (more_states.size <= states.size) {
   		return states;
   	} else {
-  		return this.follow_free_moves(new Set([...states, ...more_states]));
+  		return this.follow_epsilon_moves(new Set([...states, ...more_states]));
   	}
   }
 
@@ -52,30 +53,36 @@ class NFARulebook {
 }
 
 class NFA {
-  constructor(current_states, accept_states, rulebook) {
-    this._current_states = current_states;
+  constructor(current_state, accept_states, rulebook) {
+    this._current_state = current_state;
     this._accept_states = accept_states;
     this._rulebook = rulebook;
     this.init();
   }
 
   read_character(character) {
-    return this._current_states = this._rulebook.next_states(this._current_states, character)
+    let next_state = this._rulebook.next_states(this.current_state, character)
+
+    return this.current_state = (next_state === false ? save_current_state : next_state)
   }
 
   read_string(string) {
-    string = Array.from(string)
-    return string.forEach((item) => {
-      this.read_character(item)
+    let save_current_state,read_string = Array.from(string)
+    save_current_state = this._current_state
+
+    read_string.forEach((item) => {
+      this.read_character(item, save_current_state)
     })
+
+    this._current_state === false ? save_current_state : this._current_state
   }
 
   accepting() {
-    return this._accept_states.filter(x => this._current_states.has(x)).length != 0;
+    return this._accept_states.filter(x => this._current_state.has(x)).length != 0;
   }
 
   init() {
-  	this._current_states = this._rulebook.follow_free_moves(this._current_states)
+  	this._current_state = this._rulebook.follow_epsilon_moves(this._current_state)
   }
 }
 
@@ -143,15 +150,6 @@ class NFASimulation{
 	}
 }
 
-function concatArray(arr) {
-
-  arr =  arr.reduce((init,current) => {
-    return [...init, ...current];
-  }, [])
-
-  return arr;
-}
-
 var rulebook = new NFARulebook([
   new FARule(1, 'a', 1),new FARule(1, 'a', 2),new FARule(1, 'nil', 2),
   new FARule(2, 'b', 3),
@@ -173,5 +171,7 @@ nfa_design.accepts('aaaaaa')*/
 
 /*nfa_design = new NFADesign(1, [4], rulebook);
 console.log(nfa_design.accepts('bbabb'));*/
+
 var nfa_design = new NFADesign(1, [3], rulebook)
+
 console.log(nfa_design.to_nfa())
