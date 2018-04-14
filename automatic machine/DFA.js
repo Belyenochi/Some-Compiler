@@ -53,7 +53,7 @@ class DFA {
 	read_character(character, save_current_state) {
 		let next_state = this._rulebook.next_state(this.current_state, character)
 
-		return this.current_state = (next_state === false ? save_current_state : next_state)
+		this.current_state = (next_state === false ? save_current_state : next_state)
 	}
 
 	read_string(string) {
